@@ -1,6 +1,5 @@
 package scalastic.elasticsearch
 
-import org.elasticsearch.action.support.broadcast._
 import org.elasticsearch.common.settings.ImmutableSettings._
 import org.elasticsearch.cluster.metadata._
 import org.elasticsearch.index.query._
@@ -22,7 +21,6 @@ trait IndexCrud
     with Flush
     with Refresh
     with Optimize
-    with GatewaySnapshot
     with Segments
     with Status
     with Stats
@@ -173,9 +171,8 @@ trait Optimize {
     listenerThreaded: Option[Boolean] = None,
     maxNumSegments: Option[Int] = None,
     onlyExpungeDeletes: Option[Boolean] = None,
-    operationThreading: Option[BroadcastOperationThreading] = None,
     waitForMerge: Option[Boolean] = None) =
-    optimize_send(indices, flush, listenerThreaded, maxNumSegments, onlyExpungeDeletes, operationThreading, waitForMerge).actionGet
+    optimize_send(indices, flush, listenerThreaded, maxNumSegments, onlyExpungeDeletes, waitForMerge).actionGet
 
   def optimize_send(
     indices: Iterable[String] = Nil,
@@ -183,9 +180,8 @@ trait Optimize {
     listenerThreaded: Option[Boolean] = None,
     maxNumSegments: Option[Int] = None,
     onlyExpungeDeletes: Option[Boolean] = None,
-    operationThreading: Option[BroadcastOperationThreading] = None,
     waitForMerge: Option[Boolean] = None) =
-    optimize_prepare(indices, flush, listenerThreaded, maxNumSegments, onlyExpungeDeletes, operationThreading, waitForMerge).execute
+    optimize_prepare(indices, flush, listenerThreaded, maxNumSegments, onlyExpungeDeletes, waitForMerge).execute
 
   def optimize_prepare(
     indices: Iterable[String] = Nil,
@@ -193,7 +189,6 @@ trait Optimize {
     listenerThreaded: Option[Boolean] = None,
     maxNumSegments: Option[Int] = None,
     onlyExpungeDeletes: Option[Boolean] = None,
-    operationThreading: Option[BroadcastOperationThreading] = None,
     waitForMerge: Option[Boolean] = None) = {
       /* method body */
     val request = client.admin.indices.prepareOptimize(indices.toArray: _*)
@@ -201,7 +196,6 @@ trait Optimize {
     listenerThreaded foreach { request.setListenerThreaded(_) }
     maxNumSegments foreach { request.setMaxNumSegments(_) }
     onlyExpungeDeletes foreach { request.setOnlyExpungeDeletes(_) }
-    operationThreading foreach { request.setOperationThreading(_) }
     waitForMerge foreach { request.setWaitForMerge(_) }
     request
   }
@@ -234,24 +228,20 @@ trait Refresh {
   def refresh(
     indices: Iterable[String] = Nil,
     listenerThreaded: Option[Boolean] = None,
-    operationThreading: Option[BroadcastOperationThreading] = None,
-    force: Option[Boolean] = None) = refresh_send(indices, listenerThreaded, operationThreading, force).actionGet
+    force: Option[Boolean] = None) = refresh_send(indices, listenerThreaded, force).actionGet
 
   def refresh_send(
     indices: Iterable[String] = Nil,
     listenerThreaded: Option[Boolean] = None,
-    operationThreading: Option[BroadcastOperationThreading] = None,
-    force: Option[Boolean] = None) = refresh_prepare(indices, listenerThreaded, operationThreading, force).execute
+    force: Option[Boolean] = None) = refresh_prepare(indices, listenerThreaded, force).execute
 
   def refresh_prepare(
     indices: Iterable[String] = Nil,
     listenerThreaded: Option[Boolean] = None,
-    operationThreading: Option[BroadcastOperationThreading] = None,
     force: Option[Boolean] = None) = {
       /* method body */
     val request = client.admin.indices.prepareRefresh(indices.toArray: _*)
     listenerThreaded foreach { request.setListenerThreaded(_) }
-    operationThreading foreach { request.setOperationThreading(_) }
     force foreach { request.setForce(_) }
     request
   }
@@ -336,16 +326,16 @@ trait Stats {
 trait PutMapping {
   self: Indexer =>
 
-  def putMapping(index: String, `type`: String, source: String, ignoreConflicts: Option[Boolean] = None, timeout: Option[String] = None) = 
+  def putMapping(index: String, `type`: String, source: String, ignoreConflicts: Option[Boolean] = None, timeout: Option[String] = None) =
     putMappingForAll(Seq(index), `type`, source, ignoreConflicts, timeout)
-  def putMapping_send(index: String, `type`: String, source: String, ignoreConflicts: Option[Boolean] = None, timeout: Option[String] = None) = 
+  def putMapping_send(index: String, `type`: String, source: String, ignoreConflicts: Option[Boolean] = None, timeout: Option[String] = None) =
     putMappingForAll_send(Seq(index), `type`, source, ignoreConflicts, timeout)
-  def putMapping_prepare(index: String, `type`: String, source: String, ignoreConflicts: Option[Boolean] = None, timeout: Option[String] = None) = 
+  def putMapping_prepare(index: String, `type`: String, source: String, ignoreConflicts: Option[Boolean] = None, timeout: Option[String] = None) =
     putMappingForAll_prepare(Seq(index), `type`, source, ignoreConflicts, timeout)
 
-  def putMappingForAll(indices: Iterable[String], `type`: String, source: String, ignoreConflicts: Option[Boolean] = None, timeout: Option[String] = None) = 
+  def putMappingForAll(indices: Iterable[String], `type`: String, source: String, ignoreConflicts: Option[Boolean] = None, timeout: Option[String] = None) =
     putMappingForAll_send(indices, `type`, source, ignoreConflicts, timeout).actionGet
-  def putMappingForAll_send(indices: Iterable[String], `type`: String, source: String, ignoreConflicts: Option[Boolean] = None, timeout: Option[String] = None) = 
+  def putMappingForAll_send(indices: Iterable[String], `type`: String, source: String, ignoreConflicts: Option[Boolean] = None, timeout: Option[String] = None) =
     putMappingForAll_prepare(indices, `type`, source, ignoreConflicts, timeout).execute
   def putMappingForAll_prepare(indices: Iterable[String], `type`: String, source: String, ignoreConflicts: Option[Boolean] = None, timeout: Option[String] = None) = {
     val request = client.admin.indices.preparePutMapping(indices.toArray: _*)
@@ -501,14 +491,6 @@ trait Close {
   }
 }
 
-@deprecated(message="use the new snapshot/restore API instead", since="1.1.0")
-trait GatewaySnapshot {
-  self: Indexer =>
-  def gatewaySnapshot(indices: String*) = gatewaySnapshot_send(indices.toArray: _*).actionGet
-  def gatewaySnapshot_send(indices: String*) = gatewaySnapshot_prepare(indices.toArray: _*).execute
-  def gatewaySnapshot_prepare(indices: String*) = client.admin.indices.prepareGatewaySnapshot(indices.toArray: _*)
-}
-
 trait Segments {
   self: Indexer =>
   def segments(indices: String*) = segments_send(indices.toArray: _*).actionGet
@@ -525,8 +507,7 @@ trait ClearCache {
     fieldDataCache: Option[Boolean] = None,
     filterCache: Option[Boolean] = None,
     idCache: Option[Boolean] = None,
-    listenerThreaded: Option[Boolean] = None,
-    operationThreading: Option[BroadcastOperationThreading] = None) = clearCache_send(indices, fields, fieldDataCache, filterCache, idCache, listenerThreaded, operationThreading).actionGet
+    listenerThreaded: Option[Boolean] = None) = clearCache_send(indices, fields, fieldDataCache, filterCache, idCache, listenerThreaded).actionGet
 
   def clearCache_send(
     indices: Iterable[String] = Nil,
@@ -534,8 +515,7 @@ trait ClearCache {
     fieldDataCache: Option[Boolean] = None,
     filterCache: Option[Boolean] = None,
     idCache: Option[Boolean] = None,
-    listenerThreaded: Option[Boolean] = None,
-    operationThreading: Option[BroadcastOperationThreading] = None) = clearCache_prepare(indices, fields, fieldDataCache, filterCache, idCache, listenerThreaded, operationThreading).execute
+    listenerThreaded: Option[Boolean] = None) = clearCache_prepare(indices, fields, fieldDataCache, filterCache, idCache, listenerThreaded).execute
 
   def clearCache_prepare(
     indices: Iterable[String] = Nil,
@@ -543,8 +523,7 @@ trait ClearCache {
     fieldDataCache: Option[Boolean] = None,
     filterCache: Option[Boolean] = None,
     idCache: Option[Boolean] = None,
-    listenerThreaded: Option[Boolean] = None,
-    operationThreading: Option[BroadcastOperationThreading] = None): ClearIndicesCacheRequestBuilder = {
+    listenerThreaded: Option[Boolean] = None) : ClearIndicesCacheRequestBuilder = {
       /* method body */
     val request = client.admin.indices.prepareClearCache(indices.toArray: _*)
     request.setFields(fields.toArray: _*)
@@ -552,7 +531,6 @@ trait ClearCache {
     filterCache foreach { request.setFilterCache(_) }
     idCache foreach { request.setIdCache(_) }
     listenerThreaded foreach { request.setListenerThreaded(_) }
-    operationThreading foreach { request.setOperationThreading(_) }
     request
   }
 }

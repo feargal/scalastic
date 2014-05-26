@@ -84,7 +84,7 @@ trait State {
       /* method body */
     val request = client.admin.cluster.prepareState
     filterBlocks foreach { request.setBlocks(_) }
-    request.setIndexTemplates(filterIndexTemplates.toArray: _*)
+    //request.setIndexTemplates(filterIndexTemplates.toArray: _*)
     request.setIndices(filterIndices.toArray: _*)
     filterMetaData foreach { request.setMetaData(_) }
     filterNodes foreach { request.setNodes(_) }

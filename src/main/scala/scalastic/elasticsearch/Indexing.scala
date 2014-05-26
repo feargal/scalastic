@@ -155,8 +155,7 @@ trait Count {
     query: QueryBuilder = matchAllQuery,
     listenerThreaded: Option[Boolean] = None,
     minScore: Option[Float] = None,
-    operationThreading: Option[BroadcastOperationThreading] = None,
-    routing: Option[String] = None) = count_send(indices, types, query, listenerThreaded, minScore, operationThreading, routing).actionGet
+    routing: Option[String] = None) = count_send(indices, types, query, listenerThreaded, minScore, routing).actionGet
 
   def count_send(
     indices: Iterable[String],
@@ -164,8 +163,7 @@ trait Count {
     query: QueryBuilder = matchAllQuery,
     listenerThreaded: Option[Boolean] = None,
     minScore: Option[Float] = None,
-    operationThreading: Option[BroadcastOperationThreading] = None,
-    routing: Option[String] = None) = count_prepare(indices, types, query, listenerThreaded, minScore, operationThreading, routing).execute
+    routing: Option[String] = None) = count_prepare(indices, types, query, listenerThreaded, minScore, routing).execute
 
   def count_prepare(
     indices: Iterable[String],
@@ -173,7 +171,6 @@ trait Count {
     query: QueryBuilder = matchAllQuery,
     listenerThreaded: Option[Boolean] = None,
     minScore: Option[Float] = None,
-    operationThreading: Option[BroadcastOperationThreading] = None,
     routing: Option[String] = None) = {
       /* method body */
     val request = client.prepareCount(indices.toArray: _*)
@@ -181,7 +178,6 @@ trait Count {
       .setQuery(query)
     listenerThreaded foreach { request.setListenerThreaded(_) }
     minScore foreach { request.setMinScore(_) }
-    operationThreading foreach { request.setOperationThreading(_) }
     routing foreach { request.setRouting(_) }
     request
   }
@@ -287,42 +283,42 @@ trait Update {
   self: Indexer =>
 
   def update(
-    index: String, 
-    `type`: String, 
-    id: String, 
+    index: String,
+    `type`: String,
+    id: String,
     doc: Option[String] = None,
     parent: Option[String] = None,
-    script: Option[String] = None, 
-    scriptLanguage: Option[String] = None, 
+    script: Option[String] = None,
+    scriptLanguage: Option[String] = None,
     scriptParams: Map[String, Object] = Map(),
-    percolate: Option[String] = None, 
-    replicationType: Option[ReplicationType] = None, 
+    percolate: Option[String] = None,
+    replicationType: Option[ReplicationType] = None,
     consistencyLevel: Option[WriteConsistencyLevel] = None) = update_send(index, `type`, id, doc, parent, script, scriptLanguage, scriptParams, percolate, replicationType, consistencyLevel).actionGet
 
   def update_send(
-    index: String, 
-    `type`: String, 
-    id: String, 
+    index: String,
+    `type`: String,
+    id: String,
     doc: Option[String] = None,
     parent: Option[String] = None,
-    script: Option[String] = None, 
-    scriptLanguage: Option[String] = None, 
+    script: Option[String] = None,
+    scriptLanguage: Option[String] = None,
     scriptParams: Map[String, Object] = Map(),
-    percolate: Option[String] = None, 
-    replicationType: Option[ReplicationType] = None, 
+    percolate: Option[String] = None,
+    replicationType: Option[ReplicationType] = None,
     consistencyLevel: Option[WriteConsistencyLevel] = None) = update_prepare(index, `type`, id, doc, parent, script, scriptLanguage, scriptParams, percolate, replicationType, consistencyLevel).execute
 
   def update_prepare(
-    index: String, 
-    `type`: String, 
-    id: String, 
+    index: String,
+    `type`: String,
+    id: String,
     doc: Option[String] = None,
     parent: Option[String] = None,
-    script: Option[String] = None, 
-    scriptLanguage: Option[String] = None, 
+    script: Option[String] = None,
+    scriptLanguage: Option[String] = None,
     scriptParams: Map[String, Object] = Map(),
-    percolate: Option[String] = None, 
-    replicationType: Option[ReplicationType] = None, 
+    percolate: Option[String] = None,
+    replicationType: Option[ReplicationType] = None,
     consistencyLevel: Option[WriteConsistencyLevel] = None) = {
           /* method body */
     val request = client.prepareUpdate(index, `type`, id)

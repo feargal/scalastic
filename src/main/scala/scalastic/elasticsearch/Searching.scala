@@ -7,13 +7,13 @@ import org.elasticsearch.search._, facet._, sort._, SortBuilders._, builder._
 import scala.collection._, JavaConversions._
 import org.elasticsearch.common.geo._
 
-trait Searching 
-  extends Query 
-  with Search 
+trait Searching
+  extends Query
+  with Search
   with SearchScroll with ClearScroll
   with MoreLikeThis
-  with Multisearch 
-  with Percolate 
+  with Multisearch
+  with Percolate
   with ValidateQuery {
   self: Indexer =>
 }
@@ -111,24 +111,20 @@ trait SearchScroll {
   def searchScroll(
     scrollId: String,
     listenerThreaded: Option[Boolean] = None,
-    operationThreading: Option[SearchOperationThreading] = None,
-    scroll: Option[String] = None) = searchScroll_send(scrollId, listenerThreaded, operationThreading, scroll).actionGet
+    scroll: Option[String] = None) = searchScroll_send(scrollId, listenerThreaded, scroll).actionGet
 
   def searchScroll_send(
     scrollId: String,
     listenerThreaded: Option[Boolean] = None,
-    operationThreading: Option[SearchOperationThreading] = None,
-    scroll: Option[String] = None) = searchScroll_prepare(scrollId, listenerThreaded, operationThreading, scroll).execute
+    scroll: Option[String] = None) = searchScroll_prepare(scrollId, listenerThreaded, scroll).execute
 
   def searchScroll_prepare(
     scrollId: String,
     listenerThreaded: Option[Boolean] = None,
-    operationThreading: Option[SearchOperationThreading] = None,
     scroll: Option[String] = None) = {
       /* method body */
     val request = client.prepareSearchScroll(scrollId)
     listenerThreaded foreach { request.listenerThreaded(_) }
-    operationThreading foreach { request.setOperationThreading(_) }
     scroll foreach { request.setScroll(_) }
     request
   }
@@ -169,7 +165,6 @@ trait Search {
     indexBoosts: Map[String, Float] = Map(),
     internalBuilder: Option[SearchSourceBuilder] = None,
     minScore: Option[Float] = None,
-    operationThreading: Option[SearchOperationThreading] = None,
     partialFields: Iterable[PartialField] = Nil,
     preference: Option[String] = None,
     queryHint: Option[String] = None,
@@ -182,7 +177,7 @@ trait Search {
     source: Option[String] = None,
     statsGroups: Iterable[String] = Nil,
     timeout: Option[String] = None,
-    trackScores: Option[Boolean] = None) = search_send(indices, types, query, explain, extraSource, facets, fields, filter, from, highlight, indexBoosts, internalBuilder, minScore, operationThreading, partialFields, preference, queryHint, routing, scriptFields, scroll, searchType, size, sortings, source, statsGroups, timeout, trackScores).actionGet
+    trackScores: Option[Boolean] = None) = search_send(indices, types, query, explain, extraSource, facets, fields, filter, from, highlight, indexBoosts, internalBuilder, minScore, partialFields, preference, queryHint, routing, scriptFields, scroll, searchType, size, sortings, source, statsGroups, timeout, trackScores).actionGet
 
   def search_send(
     indices: Iterable[String] = Nil,
@@ -199,7 +194,6 @@ trait Search {
     indexBoosts: Map[String, Float] = Map(),
     internalBuilder: Option[SearchSourceBuilder] = None,
     minScore: Option[Float] = None,
-    operationThreading: Option[SearchOperationThreading] = None,
     partialFields: Iterable[PartialField] = Nil,
     preference: Option[String] = None,
     queryHint: Option[String] = None,
@@ -212,7 +206,7 @@ trait Search {
     source: Option[String] = None,
     statsGroups: Iterable[String] = Nil,
     timeout: Option[String] = None,
-    trackScores: Option[Boolean] = None) = search_prepare(indices, types, query, explain, extraSource, facets, fields, filter, from, highlight, indexBoosts, internalBuilder, minScore, operationThreading, partialFields, preference, routing, scriptFields, scroll, searchType, size, sortings, source, statsGroups, timeout, trackScores).execute
+    trackScores: Option[Boolean] = None) = search_prepare(indices, types, query, explain, extraSource, facets, fields, filter, from, highlight, indexBoosts, internalBuilder, minScore, partialFields, preference, routing, scriptFields, scroll, searchType, size, sortings, source, statsGroups, timeout, trackScores).execute
 
   def search_prepare(
     indices: Iterable[String] = Nil,
@@ -229,7 +223,6 @@ trait Search {
     indexBoosts: Map[String, Float] = Map(),
     internalBuilder: Option[SearchSourceBuilder] = None,
     minScore: Option[Float] = None,
-    operationThreading: Option[SearchOperationThreading] = None,
     partialFields: Iterable[PartialField] = Nil,
     preference: Option[String] = None,
     routing: Option[String] = None,
@@ -260,7 +253,6 @@ trait Search {
     indexBoosts foreach { case (key, value) => request.addIndexBoost(key, value) }
     internalBuilder foreach { request.internalBuilder(_) }
     minScore foreach { request.setMinScore(_) }
-    operationThreading foreach { request.setOperationThreading(_) }
     partialFields foreach { each => request.addPartialField(each.name, each.includes.toArray, each.excludes.toArray) }
     preference foreach { request.setPreference(_) }
     routing foreach { request.setRouting(_) }
@@ -418,11 +410,10 @@ trait Percolate {
     request.setDocumentType(`type`)
 
     listenerThreaded foreach { request.setListenerThreaded(_) }
-    operationThreaded foreach { request.setOperationThreading(_) }
-    
+
     // local, primary, or custom value (changed from setPreferLocal in 1.0+)
     preferLocal foreach { request.setPreference(_) }
-    
+
     source foreach { request.setSource(_) }
     request
   }
@@ -460,7 +451,6 @@ trait ValidateQuery {
     request.setQuery(query)
     explain foreach { request.setExplain(_) }
     listenerThreaded foreach { request.setListenerThreaded(_) }
-    operationThreading foreach { request.setOperationThreading(_) }
     request
   }
 }
